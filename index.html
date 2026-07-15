@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Special Screening</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600;1,700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --velvet: #2b0a12;
+    --velvet-deep: #170509;
+    --burgundy: #7a1f2b;
+    --burgundy-light: #9c2d3b;
+    --gold: #c9a24b;
+    --gold-light: #e6c874;
+    --gold-dim: #8a6a30;
+    --ivory: #f3e9d7;
+    --cream: #fff8ec;
+    --shadow: rgba(0,0,0,0.45);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0; padding:0; min-height:100%;
+    background: radial-gradient(ellipse at center, var(--velvet) 0%, var(--velvet-deep) 100%);
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--ivory);
+    overflow-x: hidden;
+  }
+
+  body::before{
+    content:"";
+    position: fixed; inset:0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .stage{
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 18px;
+  }
+
+  /* ---------- CURTAIN INTRO ---------- */
+  .curtain{
+    position: fixed; top:0; bottom:0; width:52%;
+    background:
+      repeating-linear-gradient(90deg, var(--burgundy) 0px, var(--burgundy-light) 18px, var(--burgundy) 36px),
+      linear-gradient(180deg, var(--velvet-deep), var(--burgundy) 60%, var(--velvet-deep));
+    background-blend-mode: multiply;
+    z-index: 100;
+    box-shadow: 0 0 80px 20px rgba(0,0,0,0.6) inset;
+  }
+  .curtain-left{ left:0; border-right: 3px solid var(--gold-dim); animation: openLeft 1.6s 0.4s cubic-bezier(.77,0,.18,1) forwards; }
+  .curtain-right{ right:0; border-left: 3px solid var(--gold-dim); animation: openRight 1.6s 0.4s cubic-bezier(.77,0,.18,1) forwards; }
+  @keyframes openLeft{ to{ transform: translateX(-102%); } }
+  @keyframes openRight{ to{ transform: translateX(102%); } }
+  @media (prefers-reduced-motion: reduce){ .curtain-left, .curtain-right{ animation-duration: .01s; } }
+
+  .app{ width: 100%; max-width: 640px; position: relative; z-index: 2; }
+
+  .reel-nav{ display:flex; justify-content:center; gap: 14px; margin-bottom: 28px; }
+  .reel-hole{
+    width: 14px; height:14px; border-radius:50%;
+    border: 2px solid var(--gold-dim);
+    background: transparent;
+    transition: background .4s ease, box-shadow .4s ease, border-color .4s ease;
+  }
+  .reel-hole.filled{
+    background: var(--gold-light); border-color: var(--gold-light);
+    box-shadow: 0 0 10px 2px rgba(230,200,116,0.6);
+  }
+
+  .page{ display:none; animation: fadeSlide .7s ease both; }
+  .page.active{ display:block; }
+  @keyframes fadeSlide{ from{ opacity:0; transform: translateY(14px); } to{ opacity:1; transform: translateY(0); } }
+
+  .card{
+    background: linear-gradient(180deg, rgba(23,5,9,0.75), rgba(43,10,18,0.85));
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    padding: 48px 40px;
+    position: relative;
+    box-shadow: 0 20px 60px var(--shadow);
+    transition: transform .4s ease, box-shadow .4s ease;
+  }
+  .card:hover{ transform: translateY(-3px); box-shadow: 0 26px 74px var(--shadow); }
+
+  .music-toggle{
+    position: fixed; top: 16px; right: 16px; z-index: 60;
+    width: 42px; height: 42px; border-radius: 50%;
+    background: rgba(23,5,9,0.72); border: 1px solid var(--gold-dim); color: var(--gold-light);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size: 17px;
+    transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+  }
+  .music-toggle:hover{ border-color: var(--gold-light); transform: scale(1.1); box-shadow: 0 0 16px rgba(201,162,75,0.4); }
+  .music-toggle:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 3px; }
+  .card::before, .card::after{
+    content:""; position:absolute; top:14px; bottom:14px; width:1px;
+    background: linear-gradient(180deg, transparent, var(--gold-dim), transparent);
+  }
+  .card::before{ left: 14px; }
+  .card::after{ right: 14px; }
+
+  .eyebrow{
+    font-family:'Oswald', sans-serif; letter-spacing: 0.35em; text-transform: uppercase;
+    font-size: 12px; color: var(--gold-light); text-align:center; margin: 0 0 18px;
+  }
+
+  h1, h2{ font-family:'Playfair Display', serif; text-align:center; margin: 0 0 6px; color: var(--cream); }
+  h1{ font-size: clamp(30px, 6vw, 46px); font-style: italic; font-weight:700; line-height:1.2; }
+  h2{ font-size: clamp(24px, 5vw, 32px); font-weight:700; }
+
+  .subtitle{ text-align:center; font-size: 19px; color: var(--gold-light); margin: 0 0 30px; font-style: italic; }
+  .divider{ width: 70px; height: 1px; background: var(--gold); margin: 22px auto; opacity: .7; }
+  p.body-text{ font-size: 20px; line-height: 1.6; text-align: center; color: var(--ivory); margin: 0 0 12px; }
+
+  .btn-row{ display:flex; justify-content:center; gap: 20px; margin-top: 34px; flex-wrap: wrap; }
+  .btn{
+    font-family:'Oswald', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; font-size: 14px;
+    background: transparent; color: var(--gold-light); border: 1px solid var(--gold);
+    padding: 14px 34px; border-radius: 2px; cursor: pointer;
+    transition: background .3s ease, color .3s ease, transform .2s ease, box-shadow .3s ease, opacity .3s ease;
+  }
+  .btn:hover:not(:disabled){ background: var(--gold); color: var(--velvet-deep); box-shadow: 0 0 22px rgba(201,162,75,0.5); }
+  .btn:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 3px; }
+  .btn:disabled{ opacity: .35; cursor: not-allowed; }
+
+  .btn-primary{ background: var(--gold); color: var(--velvet-deep); font-weight:600; animation: pulseGlow 2.6s ease-in-out infinite; }
+  .btn-primary:hover:not(:disabled){ transform: scale(1.06); box-shadow: 0 0 26px rgba(230,200,116,0.65); animation-play-state: paused; }
+  .btn-primary:disabled{ animation: none; }
+  @keyframes pulseGlow{
+    0%, 100%{ box-shadow: 0 0 0 rgba(230,200,116,0); }
+    50%{ box-shadow: 0 0 18px rgba(230,200,116,0.45); }
+  }
+  @media (prefers-reduced-motion: reduce){ .btn-primary{ animation: none; } }
+
+  /* ---------- PAGE 1: dodging "No" button ---------- */
+  .ask-choice-zone{
+    position: relative;
+    min-height: 96px;
+  }
+  #askNo{
+    position: relative;
+    transition: transform .18s ease, left .18s ease, top .18s ease;
+  }
+
+  /* ---------- PAGE 1 ---------- */
+  .ask-question{
+    font-family:'Playfair Display', serif; font-style: italic;
+    font-size: clamp(26px, 5.5vw, 38px); text-align:center; margin: 10px 0 8px; color: var(--cream);
+  }
+
+  /* ---------- PAGE 2: ACTIVITY LIST ---------- */
+  .option-list{ list-style:none; margin: 24px 0 0; padding:0; display:flex; flex-direction:column; gap: 14px; }
+  .option-item{
+    border: 1px solid var(--gold-dim);
+    border-radius: 3px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: border-color .25s ease, background .25s ease, transform .25s ease;
+    display:flex; align-items:center; gap: 14px;
+  }
+  .option-item:hover{ border-color: var(--gold-light); transform: translateX(4px); }
+  .option-item.selected{ border-color: var(--gold-light); background: rgba(201,162,75,0.14); }
+  .option-dot{
+    width: 16px; height:16px; border-radius: 50%; border: 2px solid var(--gold-dim); flex-shrink:0;
+    transition: border-color .25s ease, background .25s ease;
+  }
+  .option-item.selected .option-dot{ border-color: var(--gold-light); background: var(--gold-light); }
+  .option-text{ font-size: 19px; color: var(--ivory); }
+
+  /* ---------- PAGE 3: CALENDAR + TIME ---------- */
+  .cal-header{ display:flex; align-items:center; justify-content:space-between; margin: 20px 0 12px; }
+  .cal-nav-btn{
+    background: none; border: 1px solid var(--gold-dim); color: var(--gold-light);
+    width: 34px; height:34px; border-radius: 50%; cursor:pointer; font-size:16px;
+    display:flex; align-items:center; justify-content:center; transition: border-color .2s ease, color .2s ease;
+  }
+  .cal-nav-btn:hover:not(:disabled){ border-color: var(--gold-light); color: var(--cream); }
+  .cal-nav-btn:disabled{ opacity:.3; cursor:not-allowed; }
+  .cal-month-label{ font-family:'Oswald', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; font-size: 15px; color: var(--cream); }
+
+  .cal-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-dow{
+    font-family:'Oswald', sans-serif; font-size: 11px; letter-spacing:0.08em; text-transform:uppercase;
+    color: var(--gold-dim); text-align:center; padding-bottom: 4px;
+  }
+  .cal-day{
+    aspect-ratio: 1; display:flex; align-items:center; justify-content:center;
+    border-radius: 50%; font-size: 16px; color: var(--ivory); cursor:pointer;
+    border: 1px solid transparent; transition: border-color .2s ease, background .2s ease, color .2s ease, transform .2s ease;
+  }
+  .cal-day:hover:not(.disabled):not(.empty){ border-color: var(--gold-light); transform: scale(1.12); }
+  .cal-day.selected{ background: var(--gold-light); color: var(--velvet-deep); font-weight:600; }
+  .cal-day.disabled{ color: var(--gold-dim); opacity: .35; cursor: not-allowed; }
+  .cal-day.empty{ cursor: default; }
+
+  .time-label{
+    font-family:'Oswald', sans-serif; font-size: 12px; letter-spacing:0.15em; text-transform:uppercase;
+    color: var(--gold-light); margin: 30px 0 10px; text-align:center;
+  }
+  .time-select{
+    display:block; width:100%; max-width: 280px; margin: 0 auto;
+    background: var(--velvet-deep); color: var(--cream); border: 1px solid var(--gold-dim);
+    padding: 12px 14px; font-family:'Cormorant Garamond', serif; font-size: 18px; border-radius: 3px;
+    text-align:center; appearance: none; cursor:pointer;
+  }
+  .time-select:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px; }
+
+  /* ---------- PAGE 4: CONFIRMATION ---------- */
+  .summary-list{ list-style:none; padding:0; margin: 26px 0; display:flex; flex-direction:column; gap: 16px; }
+  .summary-list li{ display:flex; justify-content:space-between; border-bottom: 1px dashed var(--gold-dim); padding-bottom: 10px; font-size: 19px; }
+  .summary-list .label{ font-family:'Oswald', sans-serif; font-size: 11px; letter-spacing:0.15em; text-transform:uppercase; color: var(--gold-light); }
+  .summary-list .value{ color: var(--cream); font-weight:500; text-align:right; }
+
+  .final-note{ text-align:center; font-size: 15px; color: var(--gold-dim); margin-top: 18px; }
+
+  /* ---------- PAGE 4: celebration ---------- */
+  .celebration{ display:none; text-align:center; padding: 12px 0; }
+  .celebration.show{ display:block; animation: fadeSlide .6s ease both; }
+  .celebration p{ color: var(--ivory); font-size: 19px; }
+
+  .confetti-piece{
+    position: fixed; top: -20px; width: 8px; height: 16px;
+    opacity: 0.9; z-index: 80; pointer-events: none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall{ to{ transform: translateY(110vh) rotate(540deg); opacity: 0.2; } }
+
+  .firework{
+    position: fixed; width: 6px; height: 6px; border-radius: 50%;
+    z-index: 80; pointer-events: none;
+    animation: spark 0.9s ease-out forwards;
+  }
+  @keyframes spark{
+    0%{ transform: translate(0,0) scale(1); opacity: 1; }
+    100%{ transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce){ .confetti-piece, .firework{ display:none; } }
+
+  footer.hint{
+    text-align:center; font-family:'Oswald', sans-serif; font-size: 11px; letter-spacing: 0.15em;
+    color: var(--gold-dim); text-transform: uppercase; margin-top: 22px;
+  }
+
+  @media (max-width: 480px){
+    .card{ padding: 34px 20px; }
+    .summary-list li{ flex-direction: column; gap: 4px; }
+    .summary-list .value{ text-align:left; }
+  }
+</style>
+</head>
+<body>
+
+<audio id="bgMusic" loop preload="auto">
+  <!-- EDIT: replace this src with your own song file (place an mp3 in the same folder as this html)
+       or a URL to audio you have the rights to use. -->
+  <source src="song.mp3" type="audio/mpeg">
+</audio>
+<button class="music-toggle" id="musicToggle" aria-label="Toggle background music" title="Toggle music">🔈</button>
+
+<div class="curtain curtain-left"></div>
+<div class="curtain curtain-right"></div>
+
+<div class="stage">
+  <div class="app">
+
+    <div class="reel-nav" id="reelNav">
+      <div class="reel-hole filled" data-i="0"></div>
+      <div class="reel-hole" data-i="1"></div>
+      <div class="reel-hole" data-i="2"></div>
+      <div class="reel-hole" data-i="3"></div>
+    </div>
+
+    <!-- PAGE 1: THE ASK -->
+    <section class="page active" id="page-1">
+      <div class="card">
+        <p class="eyebrow">A Question, Before We Begin</p>
+        <h1 class="ask-question">Would you like to go on a date with me?</h1>
+        <div class="divider"></div>
+        <div class="btn-row ask-choice-zone" id="askChoiceZone">
+          <button class="btn btn-primary" id="askYes" onclick="goTo(1)">Yes</button>
+          <button class="btn" id="askNo">No</button>
+        </div>
+      </div>
+      <footer class="hint">Feature presentation begins momentarily</footer>
+    </section>
+
+    <!-- PAGE 2: CHOOSE THE DATE IDEA -->
+    <section class="page" id="page-2">
+      <div class="card">
+        <p class="eyebrow">Feature Presentation</p>
+        <h2>Pick the Plot</h2>
+        <p class="body-text" style="font-size:17px; margin-top:14px;">Choose one storyline for our evening.</p>
+
+        <ul class="option-list" id="optionList">
+          <li class="option-item" data-value="Classic Cinema Night — dinner and a movie at the theater">
+            <span class="option-dot"></span><span class="option-text">Classic Cinema Night — dinner and a movie at the theater</span>
+          </li>
+          <li class="option-item" data-value="Outdoor Movie Under the Stars">
+            <span class="option-dot"></span><span class="option-text">Outdoor Movie Under the Stars</span>
+          </li>
+          <li class="option-item" data-value="Cook a Movie-Inspired Dinner Together">
+            <span class="option-dot"></span><span class="option-text">Cook a Movie-Inspired Dinner Together</span>
+          </li>
+          <li class="option-item" data-value="Film Festival / Double Feature Marathon">
+            <span class="option-dot"></span><span class="option-text">Film Festival / Double Feature Marathon</span>
+          </li>
+          <li class="option-item" data-value="Surprise Me — you choose the film">
+            <span class="option-dot"></span><span class="option-text">Surprise Me — you choose the film</span>
+          </li>
+        </ul>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="continueFromOptions" onclick="goTo(2)" disabled>Continue &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: CHOOSE DAY + TIME -->
+    <section class="page" id="page-3">
+      <div class="card">
+        <p class="eyebrow">Showtime Selection</p>
+        <h2>When Are You Free?</h2>
+
+        <div class="cal-header">
+          <button class="cal-nav-btn" id="prevMonth" onclick="changeMonth(-1)">&larr;</button>
+          <span class="cal-month-label" id="monthLabel"></span>
+          <button class="cal-nav-btn" id="nextMonth" onclick="changeMonth(1)">&rarr;</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+
+        <p class="time-label">Select a Time</p>
+        <select class="time-select" id="timeSelect">
+          <option value="">— choose a time —</option>
+        </select>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="continueFromCalendar" onclick="goTo(3)" disabled>Continue &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 4: CONFIRMATION -->
+    <section class="page" id="page-4">
+      <div class="card">
+        <div id="confirmBlock">
+          <p class="eyebrow">Final Cut</p>
+          <h2>Confirm the Details</h2>
+
+          <ul class="summary-list">
+            <li><span class="label">Plot</span><span class="value" id="summaryIdea">—</span></li>
+            <li><span class="label">Day</span><span class="value" id="summaryDay">—</span></li>
+            <li><span class="label">Time</span><span class="value" id="summaryTime">—</span></li>
+          </ul>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="confirmDate()">Yes, I Confirm — I'm Ready</button>
+          </div>
+          <p class="final-note">You'll be taken to WhatsApp to send the confirmation.</p>
+        </div>
+
+        <div class="celebration" id="celebration">
+          <p class="eyebrow">It's Official</p>
+          <h2>It's a Date! 🎉</h2>
+          <p>Taking you to WhatsApp to send the confirmation&hellip;</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  // ==================== EDIT THIS ====================
+  // Your WhatsApp number, country code first, digits only (no +, spaces, or dashes)
+  // Example: US number (555) 123-4567 -> "15551234567"
+  const WHATSAPP_NUMBER = "15551234567";
+  // =====================================================
+
+  const pages = document.querySelectorAll('.page');
+  const holes = document.querySelectorAll('.reel-hole');
+
+  function goTo(index){
+    pages.forEach((p, i) => p.classList.toggle('active', i === index));
+    holes.forEach((h, i) => h.classList.toggle('filled', i <= index));
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  // ---------- background music ----------
+  const bgMusic = document.getElementById('bgMusic');
+  const musicToggle = document.getElementById('musicToggle');
+  bgMusic.volume = 0.18; // low background volume
+
+  let musicStarted = false;
+  let musicPlaying = false;
+
+  function startMusicOnce(){
+    if (musicStarted) return;
+    musicStarted = true;
+    bgMusic.play().then(() => {
+      musicPlaying = true;
+      musicToggle.textContent = '🔊';
+    }).catch(() => {
+      // Browser blocked autoplay — she can tap the toggle button to start it herself
+      musicPlaying = false;
+      musicToggle.textContent = '🔈';
+    });
+  }
+
+  musicToggle.addEventListener('click', () => {
+    if (!musicStarted){ startMusicOnce(); return; }
+    if (musicPlaying){
+      bgMusic.pause();
+      musicPlaying = false;
+      musicToggle.textContent = '🔇';
+    } else {
+      bgMusic.play();
+      musicPlaying = true;
+      musicToggle.textContent = '🔊';
+    }
+  });
+
+  // Any first tap/click anywhere also tries to start it (covers autoplay restrictions)
+  document.body.addEventListener('click', startMusicOnce, { once: true });
+
+  // ---------- PAGE 1: "No" button dodges around while shrinking ----------
+  let noDodgeCount = 0;
+  const askNo = document.getElementById('askNo');
+  const askYesBtn = document.getElementById('askYes');
+  const askChoiceZone = document.getElementById('askChoiceZone');
+
+  function dodgeNo(e){
+    if (e) e.preventDefault();
+    const zoneRect = askChoiceZone.getBoundingClientRect();
+    const btnRect = askNo.getBoundingClientRect();
+
+    noDodgeCount++;
+    const maxX = Math.max(zoneRect.width - btnRect.width, 40);
+    const maxY = Math.max(zoneRect.height - btnRect.height, 30);
+    const randX = (Math.random() - 0.5) * maxX;
+    const randY = (Math.random() - 0.5) * maxY;
+
+    askNo.style.left = randX + 'px';
+    askNo.style.top = randY + 'px';
+
+    const scale = Math.max(1 - noDodgeCount * 0.08, 0.35);
+    askNo.style.transform = `scale(${scale})`;
+
+    const yesScale = Math.min(1 + noDodgeCount * 0.03, 1.3);
+    askYesBtn.style.transform = `scale(${yesScale})`;
+
+    if (noDodgeCount > 4) askNo.textContent = "Nope";
+    if (noDodgeCount > 8) askNo.textContent = "😳";
+  }
+
+  askNo.addEventListener('mouseenter', dodgeNo);
+  askNo.addEventListener('touchstart', dodgeNo, { passive: false });
+  askNo.addEventListener('click', dodgeNo);
+
+  // ---------- PAGE 2: option selection ----------
+  let chosenIdea = null;
+  const optionItems = document.querySelectorAll('.option-item');
+  const continueFromOptions = document.getElementById('continueFromOptions');
+  optionItems.forEach(item => {
+    item.addEventListener('click', () => {
+      optionItems.forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      chosenIdea = item.dataset.value;
+      continueFromOptions.disabled = false;
+    });
+  });
+
+  // ---------- PAGE 3: calendar ----------
+  const monthLabel = document.getElementById('monthLabel');
+  const calGrid = document.getElementById('calGrid');
+  const timeSelect = document.getElementById('timeSelect');
+  const continueFromCalendar = document.getElementById('continueFromCalendar');
+  const prevMonthBtn = document.getElementById('prevMonth');
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let viewYear = today.getFullYear();
+  let viewMonth = today.getMonth();
+  let selectedDate = null;
+  let selectedTime = "";
+
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const dowNames = ["S","M","T","W","T","F","S"];
+
+  function renderCalendar(){
+    calGrid.innerHTML = "";
+    monthLabel.textContent = `${monthNames[viewMonth]} ${viewYear}`;
+
+    dowNames.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-dow';
+      el.textContent = d;
+      calGrid.appendChild(el);
+    });
+
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++){
+      const empty = document.createElement('div');
+      empty.className = 'cal-day empty';
+      calGrid.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++){
+      const cellDate = new Date(viewYear, viewMonth, d);
+      const cell = document.createElement('div');
+      cell.className = 'cal-day';
+      cell.textContent = d;
+
+      if (cellDate < today){
+        cell.classList.add('disabled');
+      } else {
+        cell.addEventListener('click', () => {
+          document.querySelectorAll('.cal-day.selected').forEach(c => c.classList.remove('selected'));
+          cell.classList.add('selected');
+          selectedDate = cellDate;
+          checkCalendarReady();
+        });
+        if (selectedDate && cellDate.getTime() === selectedDate.getTime()){
+          cell.classList.add('selected');
+        }
+      }
+      calGrid.appendChild(cell);
+    }
+
+    const isCurrentMonth = (viewYear === today.getFullYear() && viewMonth === today.getMonth());
+    prevMonthBtn.disabled = isCurrentMonth;
+  }
+
+  function changeMonth(delta){
+    viewMonth += delta;
+    if (viewMonth < 0){ viewMonth = 11; viewYear--; }
+    if (viewMonth > 11){ viewMonth = 0; viewYear++; }
+    renderCalendar();
+  }
+
+  function buildTimeOptions(){
+    for (let h = 9; h <= 21; h++){
+      for (let m of [0, 30]){
+        if (h === 21 && m === 30) continue;
+        const hour12 = ((h % 12) === 0) ? 12 : (h % 12);
+        const ampm = h < 12 ? "AM" : "PM";
+        const label = `${hour12}:${m === 0 ? "00" : "30"} ${ampm}`;
+        const opt = document.createElement('option');
+        opt.value = label;
+        opt.textContent = label;
+        timeSelect.appendChild(opt);
+      }
+    }
+  }
+
+  timeSelect.addEventListener('change', () => {
+    selectedTime = timeSelect.value;
+    checkCalendarReady();
+  });
+
+  function checkCalendarReady(){
+    continueFromCalendar.disabled = !(selectedDate && selectedTime);
+  }
+
+  buildTimeOptions();
+  renderCalendar();
+
+  // ---------- PAGE 4: confirmation + WhatsApp handoff ----------
+  function formatDate(d){
+    const dowFull = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    return `${dowFull[d.getDay()]}, ${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  }
+
+  // Populate summary right before showing page 4
+  document.getElementById('continueFromCalendar').addEventListener('click', () => {
+    document.getElementById('summaryIdea').textContent = chosenIdea || "—";
+    document.getElementById('summaryDay').textContent = selectedDate ? formatDate(selectedDate) : "—";
+    document.getElementById('summaryTime').textContent = selectedTime || "—";
+  });
+
+  function confirmDate(){
+    const dayStr = selectedDate ? formatDate(selectedDate) : "—";
+    const message =
+`Hi! I'd love to confirm our date 🎬
+
+Plot: ${chosenIdea}
+Day: ${dayStr}
+Time: ${selectedTime}
+
+Looking forward to it!`;
+
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
+    document.getElementById('confirmBlock').style.display = 'none';
+    document.getElementById('celebration').classList.add('show');
+    launchCelebration();
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setTimeout(() => { window.location.href = url; }, reduce ? 400 : 1900);
+  }
+
+  function launchCelebration(){
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+
+    const colors = ['#c9a24b', '#e6c874', '#f3e9d7', '#9c2d3b'];
+
+    // falling sprinkles
+    for (let i = 0; i < 45; i++){
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDuration = (2.2 + Math.random() * 1.8) + 's';
+      piece.style.animationDelay = (Math.random() * 0.5) + 's';
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), 4500);
+    }
+
+    // firework bursts
+    const burstPoints = [
+      { x: '25vw', y: '35vh' },
+      { x: '70vw', y: '30vh' },
+      { x: '50vw', y: '45vh' }
+    ];
+    burstPoints.forEach((pt, bi) => {
+      setTimeout(() => {
+        for (let i = 0; i < 18; i++){
+          const spark = document.createElement('div');
+          spark.className = 'firework';
+          const angle = (Math.PI * 2 * i) / 18;
+          const dist = 60 + Math.random() * 40;
+          spark.style.left = pt.x;
+          spark.style.top = pt.y;
+          spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+          spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+          spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+          document.body.appendChild(spark);
+          setTimeout(() => spark.remove(), 1000);
+        }
+      }, bi * 350);
+    });
+  }
+
+  setTimeout(() => {
+    document.querySelectorAll('.curtain').forEach(c => c.style.pointerEvents = 'none');
+  }, 2200);
+</script>
+
+</body>
+</html>
